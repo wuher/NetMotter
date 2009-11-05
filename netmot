@@ -1,0 +1,111 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+
+#
+# 2.10.2009
+#
+# command line netmot client to translate eng-fin-eng
+#
+
+
+import urllib2, sys, re, htmlentitydefs, os
+
+
+
+# replace xxxxx strings with proper values
+USERNAME = os.environ['MOT_USER']
+PASSWORD = os.environ['MOT_PASS']
+QUERY_URL = 'http://mot.kielikone.fi/mot/%s/netmot.exe?page=results&UI=fi80&dic=1&SearchWord=' % (USERNAME)
+
+
+#
+# courtesy of joeld42 (http://stackoverflow.com/questions/287871/print-in-terminal-with-colors-using-python)
+#
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+
+
+#
+# this function is courtesy of Fredrik Lundh (http://effbot.org/zone/re-sub.htm#unescape-html)
+#
+# Removes HTML or XML character references and entities from a text string.
+#
+# @param text The HTML (or XML) source text.
+# @return The plain text, as a Unicode string, if necessary.
+#
+def unescape(text):
+    def fixup(m):
+        text = m.group(0)
+        if text[:2] == "&#":
+            # character reference
+            try:
+                if text[:3] == "&#x":
+                    return unichr(int(text[3:-1], 16))
+                else:
+                    return unichr(int(text[2:-1]))
+            except ValueError:
+                pass
+        else:
+            # named entity
+            try:
+                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+            except KeyError:
+                pass
+        return text # leave as is
+    return re.sub("&#?\w+;", fixup, text)
+
+
+def getResultPage(word):
+    """ get result page from netmot with the given word """
+
+    # create password manager
+    password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+    password_mgr.add_password(None, QUERY_URL, USERNAME, PASSWORD)
+    # initialize http basic authentication handler with the password manager
+    handler = urllib2.HTTPBasicAuthHandler(password_mgr)
+    # create "opener" and use it to get the result page
+    opener = urllib2.build_opener(handler)
+    response = opener.open(QUERY_URL + word)
+    # return the content
+    return response.read()
+
+
+def printResults(page):
+    """ parses the results from the result page html """
+
+    lines = [line[line.find('large">') + 7:]
+             for line in page.split('\n') if line.find('text-indent') >= 0]
+
+    for line in lines:
+        if line.find('<b>') is not 0:
+            line = line[line.find('lang="fi"') + 10:]
+            line = re.sub('<span.*?>', '', line)
+        line = re.sub('<br.*?>', '\n', line)
+        line = re.sub('<b>', bcolors.WARNING, line, 1)
+        line = re.sub('</b>', bcolors.ENDC, line, 1)
+        line = re.sub('<font class="large">', bcolors.WARNING, line)
+        line = re.sub('<font class="small">', bcolors.HEADER + '   ', line)
+        line = re.sub('</font>', bcolors.ENDC, line)
+        line = re.sub('<.*?>', '', line)
+        print unescape(line)
+        print
+
+
+
+if __name__ == '__main__':
+
+    # todo: add support for credentials given as command line parameters
+
+    if len(sys.argv) is not 2:
+        print bcolors.WARNING + 'usage: netmot word' + bcolors.ENDC
+        sys.exit(1)
+
+    page = getResultPage(sys.argv[1])
+    printResults(page)
+
