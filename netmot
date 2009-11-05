@@ -63,8 +63,6 @@ def unescape(text):
 def getResultPage(word):
     """ get result page from netmot with the given word """
 
-    print 'searching for %s...' % (word)
-
     # create password manager
     password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
     password_mgr.add_password(None, QUERY_URL, USERNAME, PASSWORD)
