@@ -1,7 +1,7 @@
 NetMotter is a command line client for using the MOT dictionary. It
 requires Python 2.5 or later and an existing MOT account. It has only
 been tested with english and finnish dictionaries but there's no
-reason why it shouldn't work with other too (except maybe the
+reason why it shouldn't work with others too (except for maybe the
 parsing).
 
 Stick your username and password in the environment before running
