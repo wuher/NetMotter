@@ -9,11 +9,10 @@
 #
 
 
-import urllib2, sys, re, htmlentitydefs, os
+import urllib, urllib2, sys, re, htmlentitydefs, os
 
 
 
-# replace xxxxx strings with proper values
 USERNAME = os.environ['MOT_USER']
 PASSWORD = os.environ['MOT_PASS']
 QUERY_URL = 'http://mot.kielikone.fi/mot/%s/netmot.exe?page=results&UI=fi80&dic=1&SearchWord=' % (USERNAME)
@@ -64,6 +63,8 @@ def unescape(text):
 def getResultPage(word):
     """ get result page from netmot with the given word """
 
+    print 'searching for %s...' % (word)
+
     # create password manager
     password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
     password_mgr.add_password(None, QUERY_URL, USERNAME, PASSWORD)
@@ -71,7 +72,7 @@ def getResultPage(word):
     handler = urllib2.HTTPBasicAuthHandler(password_mgr)
     # create "opener" and use it to get the result page
     opener = urllib2.build_opener(handler)
-    response = opener.open(QUERY_URL + word)
+    response = opener.open(QUERY_URL + urllib.quote(word))
     # return the content
     return response.read()
 
