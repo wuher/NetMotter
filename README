@@ -1,5 +1,5 @@
 NetMotter is a command line client for using the MOT
-(http://www.kielikone.fi/en/) dictionary. It requires Python 2.5 or
+(http://www.kielikone.fi/en/ ) dictionary. It requires Python 2.5 or
 later and an existing MOT account. It has only been tested with
 english and finnish dictionaries but there's no reason why it
 shouldn't work with others too (except for maybe the parsing).
